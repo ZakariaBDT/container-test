@@ -24,6 +24,7 @@ registerBlockType('gutenberg-blocks/container-column', {
 				</InspectorControls>
 				<div className="container-column__content">
 					<InnerBlocks
+						templateLock={false}
 						renderAppender={() => (
 							<InnerBlocks.ButtonBlockAppender />
 						)}

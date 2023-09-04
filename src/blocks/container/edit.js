@@ -11,6 +11,8 @@ const { Fragment, useEffect, useMemo, useState } = wp.element;
 const { PanelBody, RangeControl } = wp.components;
 import { times } from 'lodash';
 const { __ } = wp.i18n;
+import { withSelect, useDispatch } from '@wordpress/data';
+import { compose } from '@wordpress/compose';
 
 // editor style
 import './editor.scss';
@@ -28,7 +30,7 @@ import './column';
  * Edit function
  */
 
-export default function Edit({ attributes, setAttributes, clientId }) {
+function Edit({ attributes, setAttributes, clientId }) {
 	const { uniqueId, blockStyle, deskCols } = attributes;
 
 	const [template, setTemplate] = useState([]);
@@ -80,7 +82,7 @@ export default function Edit({ attributes, setAttributes, clientId }) {
 		}
 	}, [blockStyle, blockStyleCss]);
 
-	// Update the template and trigger re-render when deskCols changes
+	//Update the template and trigger re-render when deskCols changes
 	useEffect(() => {
 		setTemplate(cal);
 	}, [deskCols]);
@@ -102,13 +104,21 @@ export default function Edit({ attributes, setAttributes, clientId }) {
 			{/* <Inspector attributes={attributes} setAttributes={setAttributes} /> */}
 			<div {...blockProps}>
 				<div className="blocks-container">
-					<InnerBlocks
+					{/* <InnerBlocks
 						allowedBlocks={['gutenberg-blocks/container-column']}
 						renderAppender="false"
+						template={getTemplate}
+					/> */}
+					<InnerBlocks
 						template={template}
+						templateLock='all'
+						allowedBlocks={['gutenberg-blocks/container-column']}
 					/>
 				</div>
 			</div>
 		</Fragment>
 	);
 }
+
+export default Edit;
+

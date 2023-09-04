@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { useBlockProps } from '@wordpress/block-editor';
+import { useBlockProps, InnerBlocks } from '@wordpress/block-editor';
 
 /**
  * Save function
@@ -15,5 +15,5 @@ export default function save({ attributes }) {
 		className: uniqueId,
 	});
 
-	return <div {...blockProps}>Save</div>;
+	return <div {...blockProps}><InnerBlocks.Content /></div>;
 }
