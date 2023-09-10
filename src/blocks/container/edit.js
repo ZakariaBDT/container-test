@@ -5,6 +5,7 @@ import {
 	useBlockProps,
 	InnerBlocks,
 	InspectorControls,
+	__experimentalBlockVariationPicker as BlockVariationPicker
 } from '@wordpress/block-editor';
 const { Fragment, useEffect, useMemo, useState } = wp.element;
 
@@ -13,6 +14,8 @@ import { times } from 'lodash';
 const { __ } = wp.i18n;
 import { withSelect, useDispatch } from '@wordpress/data';
 import { compose } from '@wordpress/compose';
+import { createBlock } from '@wordpress/blocks';
+
 
 // editor style
 import './editor.scss';
@@ -30,11 +33,15 @@ import './column';
  * Edit function
  */
 
-function Edit({ attributes, setAttributes, clientId }) {
+function Edit({ attributes, setAttributes, clientId,
+	variations, hasInnerBlocks, defaultVariation, replaceInnerBlocks, preview }) {
+	console.log({ variations, hasInnerBlocks });
 	const { uniqueId, blockStyle, deskCols } = attributes;
 
-	const [template, setTemplate] = useState([]);
 
+
+
+	const [template, setTemplate] = useState([]);
 	const expensiveCalculation = (num) => {
 		return times(num, () => ['gutenberg-blocks/container-column']);
 	};
@@ -87,6 +94,54 @@ function Edit({ attributes, setAttributes, clientId }) {
 		setTemplate(cal);
 	}, [deskCols]);
 
+
+	const blockVariationPickerOnSelect = (
+		nextVariation = defaultVariation
+	) => {
+		if (nextVariation.attributes) {
+			setAttributes(nextVariation.attributes);
+		}
+
+		if (nextVariation.innerBlocks) {
+			replaceInnerBlocks(
+				clientId,
+				createBlocksFromInnerBlocksTemplate(nextVariation.innerBlocks)
+			);
+		}
+	};
+
+	const createBlocksFromInnerBlocksTemplate = (innerBlocksTemplate) => {
+		return innerBlocksTemplate.map(
+			([name, attributes, innerBlocks = []]) =>
+				createBlock(
+					name,
+					attributes,
+					createBlocksFromInnerBlocksTemplate(innerBlocks)
+				)
+		);
+	};
+
+	if (!hasInnerBlocks) {
+		return (
+			preview ? <h3>preview</h3> :
+				<>
+					<div className='variation-picker-wrap'>
+						<BlockVariationPicker
+							icon={''}
+							label={__('Select Column Layout')}
+							variations={variations}
+							instructions={''}
+							onSelect={(nextVariation) =>
+								blockVariationPickerOnSelect(nextVariation)
+							}
+						/>
+					</div>
+				</>
+		);
+	}
+
+
+
 	return (
 		<Fragment>
 			<style>{`${softMinifyCssStrings(blockStyleCss)}`}</style>
@@ -101,7 +156,7 @@ function Edit({ attributes, setAttributes, clientId }) {
 					/>
 				</PanelBody>
 			</InspectorControls>
-			{/* <Inspector attributes={attributes} setAttributes={setAttributes} /> */}
+
 			<div {...blockProps}>
 				<div className="blocks-container">
 					{/* <InnerBlocks
@@ -120,5 +175,28 @@ function Edit({ attributes, setAttributes, clientId }) {
 	);
 }
 
-export default Edit;
+//export default Edit;
 
+
+const applyWithSelect = withSelect((select, props) => {
+	const { getBlocks } = select('core/block-editor');
+	const {
+		getBlockType,
+		getBlockVariations,
+		getDefaultBlockVariation,
+	} = select('core/blocks');
+
+	const innerBlocks = getBlocks(props.clientId);
+	const { replaceInnerBlocks } = useDispatch('core/block-editor');
+
+	return {
+		innerBlocks,
+		hasInnerBlocks: select('core/block-editor').getBlocks(props.clientId).length > 0,
+		blockType: getBlockType(props.name),
+		defaultVariation: typeof getDefaultBlockVariation === 'undefined' ? null : getDefaultBlockVariation(props.name),
+		variations: typeof getBlockVariations === 'undefined' ? null : getBlockVariations(props.name),
+		replaceInnerBlocks,
+	};
+});
+
+export default compose(applyWithSelect)(Edit);

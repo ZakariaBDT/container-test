@@ -13,7 +13,20 @@ registerBlockType('gutenberg-blocks/container-column', {
 	category: 'common',
 	icon: 'editor-table',
 	keywords: [__('Container Column')],
-	attributes: {},
+	attributes: {
+		uniqueID: {
+			type: 'string',
+		},
+		columnWidth: {
+			type: 'object',
+			default: {
+				lg: 100,
+				md: 100,
+				sm: 100,
+				unit: '%'
+			},
+		}
+	},
 	edit: () => {
 		return (
 			<div className="container-column">

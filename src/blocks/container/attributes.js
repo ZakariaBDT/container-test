@@ -7,7 +7,7 @@ const attributes = {
 	},
 	deskCols: {
 		type: 'number',
-		default: 1,
+		default: '',
 	},
 };
 
